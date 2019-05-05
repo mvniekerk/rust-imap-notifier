@@ -1,15 +1,36 @@
-//extern crate imap as eimap;
-extern crate native_tls;
-extern crate serde;
-extern crate serde_yaml;
-extern crate corona;
-extern crate imap;
-extern crate tokio;
+use crate::model::config::EmailConfig;
 
-pub mod model;
+use std::time::Duration;
 
-use model::config::Config;
 use corona::prelude::*;
+use tokio::clock;
+use tokio::prelude::*;
+use tokio::runtime::current_thread;
+use tokio::timer::Delay;
+
+pub fn start_polling(config: &EmailConfig) {
+
+    let config = config.clone();
+    corona::spawn(move || {
+        loop {
+            println!("Before wait {:#?}", config.email.refresh);
+            let timeout = Delay::new(clock::now() + Duration::from_secs(config.email.refresh));
+            println!("Timeout {:#?}", timeout);
+            timeout.coro_wait().unwrap();
+            println!("After");
+//            let tls = native_tls::TlsConnector::builder().build().unwrap();
+//            let domain = config.email.domain.as_str();
+//            let client = imap::connect((domain, 993), domain, &tls).unwrap();
+//            let mut imap_session = client
+//                .login(config.email.username.as_str(), config.email.password.as_str())
+//                .map_err(|e| e.0).unwrap();
+
+            for folder in config.folders.clone() {
+                println!("Handling folder {:#?}", folder);
+            }
+        }
+
+
 //
 //fn fetch_inbox_top() -> imap::error::Result<Option<String>> {
 //    let domain = "imap.example.com";
@@ -48,15 +69,7 @@ use corona::prelude::*;
 //
 //    Ok(Some(body))
 //}
-
-fn main() {
-    let f = std::fs::File::open("config.yaml").unwrap();
-    let config: Config = serde_yaml::from_reader(f).unwrap();
-    println!("Config {:#?}", config);
-
-    Coroutine::new().run(|| {
-        for cfg in config.connections {
-            model::imap::start_polling(&cfg);
-        }
+        println!("Should be start polling {:#?}", config);
     });
+
 }

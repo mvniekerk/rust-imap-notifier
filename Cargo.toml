@@ -10,3 +10,5 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 imap = "1.0.1"
 native-tls = "0.2.3"
+corona = "0.4.1"
+tokio = "0.1.19"
